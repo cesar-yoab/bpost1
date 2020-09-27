@@ -22,7 +22,7 @@ To download the data for the investigation we used the **cesR**, documentation f
 available [here](https://hodgettsp.github.io/cesR/). If you would prefer to download the data from the CES website directly it can be found 
 [here](http://ces-eec.ca/).
 
-### Files
+## Files in this repo
 1. "post_script.R" contains **only** the code used to download the data, clean it,
 generate plots and table of probabilities. 
 The .Rmd file contains the actual blog post, that is, both the 
