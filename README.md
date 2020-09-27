@@ -5,6 +5,8 @@ To use any of the code in this repository you must have
 the following libraries installed
 - tidyverse
 - labelled
+- plyr
+- cowplot
 - cesR
 To download them use the command
 ```{R}
