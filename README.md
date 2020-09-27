@@ -3,15 +3,18 @@
 This repository contains the code used to create the first [blog post](https://cyvg.netlify.app/posts/p1/).
 To use any of the code in this repository you must have 
 the following libraries installed
+
 - tidyverse
 - labelled
 - plyr
 - cowplot
 - cesR
+
 To download them use the command
 ```{R}
 install.packages(packagename)
 ```
+
 inside the R console.
 
 ## CES Data
