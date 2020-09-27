@@ -1,4 +1,4 @@
-<div style="text-align:center"><img src="/education.png" width=250px heigh=250px/></div>
+<div style="text-align:center"><img src="/education.png" width=200px heigh=200px/></div>
 
 
 [![Netlify Status](https://api.netlify.com/api/v1/badges/3a2597ec-c2d3-4cad-a4e6-293c0f054b46/deploy-status)](https://app.netlify.com/sites/cyvg/deploys)
