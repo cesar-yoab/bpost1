@@ -1,4 +1,4 @@
-<img src="https://www.flaticon.com/free-icon/mortarboard_2987867?term=education&page=1&position=18#g"/>
+<img src="/education.png"/>
 
 
 [![Netlify Status](https://api.netlify.com/api/v1/badges/3a2597ec-c2d3-4cad-a4e6-293c0f054b46/deploy-status)](https://app.netlify.com/sites/cyvg/deploys)
