@@ -1,4 +1,6 @@
-<img src="http://www.ces-eec.ca/wp-content/uploads/2018/04/ces-logo-wide.png"/>
+<img src="/education.png"/>
+
+
 [![Netlify Status](https://api.netlify.com/api/v1/badges/3a2597ec-c2d3-4cad-a4e6-293c0f054b46/deploy-status)](https://app.netlify.com/sites/cyvg/deploys)
 # First Blog Post
 This repository contains the code used to create the first [blog post](https://cyvg.netlify.app/posts/p1/).
@@ -33,3 +35,6 @@ view all equations.
 2. "post1.Rmd" contains the original markdown file used to render the blog post
 [here](https://cyvg.netlify.app/posts/p1/). It contains both the essay and the code. The
 code might differ slightly with what is "post_script.R" since the code runs in separate "chunks". 
+
+
+<div>Icons made by <a href="https://www.flaticon.com/authors/freepik" title="Freepik">Freepik</a> from <a href="https://www.flaticon.com/" title="Flaticon">www.flaticon.com</a></div>
