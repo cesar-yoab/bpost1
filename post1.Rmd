@@ -1,0 +1,272 @@
+---
+title: "Highest level of education helps predict your political inclination."
+author: "Cesar Y. Villarreal Guzman"
+date: 2020-09-27
+katex: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(collapse = TRUE)
+```
+
+```{r, include=FALSE}
+# Libraries used for this project
+library(cesR)
+library(labelled)
+library(tidyverse)
+library(plyr)
+library(cowplot)
+
+#### DOWLOAD AND CLEAN DATA #####
+# call 2019 CES online survey
+get_ces("ces2019_web")
+
+# convert values to factor type
+ces2019_web <- to_factor(ces2019_web)
+
+
+# Remap variables and create a new column
+ces_raw <- ces2019_web %>% select("cps19_votechoice", "cps19_education")
+original_labels <- unique(ces_raw$cps19_votechoice)
+new_labels<- c("Green Party", "Don't Know / Prefer no ans.", "Liberal", "Conservative",
+               "NA", "ndp",  "Another", "Bloc Qbc", "People's Party")
+ces_raw$votechoice <- mapvalues(ces_raw$cps19_votechoice, 
+                                from=original_labels, to=new_labels)
+
+# We set "Don't know/Prefer not" to NA to benefit from the is.na() function
+# when creating plots
+ces_raw$votechoice[ces_raw$votechoice == "Don't Know / Prefer no ans."] <- NA
+ces_raw <- ces_raw[complete.cases(ces_raw),]
+
+ces_raw <- ces_raw[ces_raw$cps19_education != "Don't know/ Prefer not to answer", ]
+N <- length(ces_raw$votechoice)
+```
+
+
+# Introduction
+Ever since Cambridge Analytica's scandal, more and more research has surfaced
+on how to predict political inclination. It seems that the era of big-data
+has completely changed our perspective of what is possible with data.
+What Cambridge Analytica showed is that is possible to create psychological
+profiles based on survey questions which can be used to create political strategies.
+
+In this investigation we look at the 2019 Canadian Election Study 
+([CES](http://ces-eec.ca/)), more specifically the online survey,
+to investigate how some variables obtained from this kind of surveys can be 
+used to draw conclusions that help predict an individual political views. 
+Specifically we will turn our attention to the variable of highest level of 
+education.
+
+The Pew Research Center is one of many groups of researchers that has investigated
+this variable and its correlation with political inclination. Their conclusion,
+there is a positive correlation between highest level of education and political
+views. To be perfectly clear, and avoid a 
+misunderstanding, correlation does not imply causation, i.e. your education
+is not necessarily the cause for your what political party you choose. To put it in other words,
+your education is just a variable, of many others, that as a result shape your political
+view. 
+
+To draw a conclusion that supports the already existing research claims, we
+first talk about the study itself, then about our data cleaning methods and 
+finally the analysis of the data itself. The last section is dedicated to 
+the weaknesses of our approach and what will be our next steps.
+
+
+# Data Discussion
+
+Directly from the CES website "...the CES has been a rich source of data on Canadians' 
+political behaviour and attitudes, measuring preferences on key political issues 
+such as free trade with the US, social spending and Quebec’s place in Canada; 
+political actors, such as parties, party leaders and the government; and social 
+concerns, such as women’s place in the home, support for immigration, and attitudes 
+toward gays and lesbians; as well as political preferences and engagement. 
+These data provide an unparalleled snapshot and record of Canadian society and 
+political life." This short snippet of how the authors describe the study is
+illustrate why we chose to look at this study in the first place. Similarly to
+Cambridge Analytica this study in some sense helps to create psychological profiles
+that relate with political ideology.
+
+The CES online study, is a rectangular data-set with $620$ variables/features and
+$37822$ observations. In this discussion we only look at two variables 
+"cps19_votechoice" and "cps19_education". From the raw data the **summary** 
+function outputs:
+
+```{r votes, echo=FALSE}
+summary(ces2019_web[c("cps19_votechoice", "cps19_education")])
+```
+
+As can be seen there is significant amount of non-responses, and even more 
+significant is the amount of non-responses combined with all responses of type
+"Don't know/ Prefer not to answer". To proceed, we clean the data by removing
+all rows that contain either **NA** or "Don't know/ Prefer not to answer". This
+is because, for the purpose of our investigation, they don't provide any
+information. The remaining data-set contained two variables/features and 
+$4825$ observations.
+
+Next, we clustered the data into two categories,
+individuals that have at least some university education, and the ones that don't.
+We placed individuals into the "University" category if their response was one 
+of:
+
+* Some University
+* Bachelor's Degree
+* Master's Degree
+* Professional Degree or Doctorate
+
+and into "Non-University" if they have one of these responses:
+
+* Some/Completed Technical, Community College, CEGEP, College Classique
+* Some/Completed High School
+* Some/Completed Elementary School
+* No Schooling
+
+Then, to quickly visualize the remaining data, from each category we calculated
+the percentage of votes that went into each party. Figure \@ref(fig:highed)
+shows these results:
+
+```{r highed, fig.cap='Percentage of Vote Choices Based on Education', echo=FALSE, warning=FALSE, fig.height = 7, fig.width = 12}
+# University Education
+u_education <- c("Some university", "Bachelor's degree", "Master's degree", "Professional degree or doctorate")
+uni_eductaion <- ces_raw[ces_raw$cps19_education == u_education, ]
+
+uni_percents <- as.data.frame(table(uni_eductaion$votechoice) / length(uni_eductaion$votechoice))
+names(uni_percents)[1] <- "party"
+names(uni_percents)[2] <- "percentage"
+uni_percents <- uni_percents[-c(8), ]
+uni_percents$percentage <- uni_percents$percentage * 100
+
+# Generate plot
+hed_plot <- ggplot(uni_percents, aes(x=party, y=percentage)) +
+  geom_bar(stat="identity", fill = I("springgreen3"), alpha=I(.9)) + 
+  theme_linedraw() + 
+  labs(title = "University Vote choices (n=3166)", x = "Vote Choice", y = "Percentage (%)") +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1), 
+        text = element_text(size=16)) + ylim(0, 45)
+
+
+# Non-University Education
+nu_education <- c("Some technical, community college, CEGEP, College Classique",
+                     "Some elementary school", "Some secondary/ high school",
+                     "Completed technical, community college, CEGEP, College Classique",
+                     "Completed elementary school", "No schooling")
+non_uni_education <- ces_raw[ces_raw$cps19_education == nu_education, ]
+non_uni_percents <- as.data.frame(table(non_uni_education$votechoice)/length(non_uni_education$votechoice))
+names(non_uni_percents)[1] <- "party"
+names(non_uni_percents)[2] <- "percentage"
+non_uni_percents <- non_uni_percents[-c(8), ]
+non_uni_percents$percentage <- non_uni_percents$percentage * 100
+
+led_plot <- ggplot(non_uni_percents, aes(x=party, y=percentage)) + 
+  geom_bar(stat="identity", fill = I("firebrick3"), alpha=I(.9)) + 
+  theme_linedraw() + 
+  labs(title = "Non-University Vote choices (n=1659)", x = "Vote Choice", y = "Percentage (%)") +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1), 
+        text = element_text(size=16)) + ylim(0, 45)
+
+plot_grid(hed_plot, led_plot)
+```
+
+Figure \@ref(fig:highed) shows some slight correlation between the "University"
+category and the liberal party and "Non-University" with the conservative party.
+What is very interesting to note is that the liberal party (also the winning party in the 2019 elections)
+takes about half of the votes combining both categories, this is somewhat different
+from research performed in the U.S. like [this](https://www.pewresearch.org/politics/2016/04/26/a-wider-ideological-gap-between-more-and-less-educated-adults/)
+performed by the Pew Research Center or [this one](https://www.pewresearch.org/fact-tank/2016/09/15/educational-divide-in-vote-preferences-on-track-to-be-wider-than-in-recent-elections/)
+by the same institution.
+
+# Data Analysis
+To outline how this data might be used for model creations we can use a very simple
+but powerful probabilistic model used in machine learning, a Naive Bayes classifier.
+What we seek is an estimate of the probabilities of 
+a certain individual voting for party $c$ provided we know their highest level
+of education $x$. Symbolically we try to compute $p(c|x)$.
+Using Bayes Rule the class probability is given by
+
+$$p(c|x)=\begin{matrix}p(x,c)\\ \hline p(x)\end{matrix}=\begin{matrix}p(x|c)p(c)\\ \hline p(x)\end{matrix}$$
+Following the Naive Bayes method
+we start by making the assumption that the education levels $x_i$ are **conditionally independent**
+given the class $c$ from the following set of classes:
+
+1. Liberal Party
+2. Conservative Party
+3. Ndp
+4. Bloc Québécois
+5. Green Party
+6. People's Party
+7. Another
+
+together with the two levels of education $x_1="University"$ and $x_2="Non-University$.
+To clarify, the initial assumption does not mean they are actually independent, 
+we make this assumption
+because of the nice mathematical properties that follow. First we try to compute 
+two parameters $\pi_j$ for $p(c=j)$ and
+$\theta_ij$ for $p(x=i|c=j)$. These parameters are for
+the generalized version of the Bernoulli model, also called the Categorial model, 
+and the regular Bernoulli model respectively. In essence this method is just a
+slight variation of the regular coin toss problem.
+The estimation of each parameter, will be done by computing their 
+respective MLE's (Maximum likelihood estimate). 
+First the MLE for $p(c=j)$ is given by:
+$$\hat{\pi}_j=\begin{matrix}N_j \\ \hline N\end{matrix}$$
+where $N_j$ is the number of appearances of party $j$ in the data-set of size $N$,
+and the MLE of $p(x=i|c=j)$
+
+$$\hat{\theta}_{ij}= \begin{matrix}N_{ij} \\ \hline N_j \end{matrix}$$
+where $N_{ij}$ is the number of appearances of party $j$ with education $i$, $N_j$
+is as before. We can stop here because from Bayes Theorem we have that
+$$p(c|x)\propto p(c)p(x|c)$$
+and hence it is not necessary to compute values for $p(x)$. Table 1 displays the 
+computed values $p(c)p(x|c)$.
+```{r model, echo=FALSE}
+# Probability p(c) for party c
+pi_hat <- table(ces_raw$votechoice) / N
+
+# # party "c" and "education" / # party "c" in dataset
+theta_uni <- table(uni_eductaion$votechoice) / table(ces_raw$votechoice)
+theta_non_uni <- table(non_uni_education$votechoice) / table(ces_raw$votechoice)
+
+puni <- pi_hat * theta_uni
+pnuni <- pi_hat * theta_non_uni
+
+results <- cbind(puni, pnuni)
+results <- results[1:7,]
+knitr::kable(round(results, digits = 4), col.names = c("University", "Non-University"), 
+             align = "ccc", caption="Proportional values to $p(c|x)$")
+```
+
+The Naive Bayes classifier then uses Table 1 together with some input, say $x="University"$,
+and then outputs the value with highest probability, in this example it would be "Liberal Party".
+Similarly for $x="Non-University"$ the classifier would output "Conservative Party".
+
+This model helps to illustrate that with some profile data, like 
+the one in the CES study or the one collected by Cambridge Analytica, 
+we can model human behavior to a certain extent even with the simplest of 
+methods. More sophisticated methods yield more accurate and precise results, just
+like more data yields better results. 
+
+
+# Weaknesses and Next Steps
+Perhaps the most clear weakness of this analysis lies in its simplicity. Although
+there is theory surrounding what we did, we also cannot deny that this method
+is just one of many methods that could be applied to analyze this data-set.
+The biggest weakness is perhaps the lack of other methods for comparison. Some 
+other methods may include other types of Bayesian Networks, Poisson regression, 
+and Negative Binomial Regression.
+
+What comes next is to perhaps attempt what Cambridge Analytica successfully did,
+create a model that given some number of features, predicts the political inclination
+of an individual. To find such features one could perform some sort of PCA
+(Principal Component Analysis) to reduce the dimension of the original data-set. 
+Then, depending on the size of the remaining data, we could attempt different 
+machine learning methods, to create an accurate model.
+
+
+## References
+1. Stephenson, Laura B; Harell, Allison; Rubenson, Daniel; Loewen, Peter John, 2020, "2019 Canadian Election Study - Online Survey", https://doi.org/10.7910/DVN/DUS88V, Harvard Dataverse, V1
+2. Suls, R. (2020, August 28). Educational divide in vote preferences on track to be wider than in recent elections. Retrieved September 27, 2020, from https://www.pewresearch.org/fact-tank/2016/09/15/educational-divide-in-vote-preferences-on-track-to-be-wider-than-in-recent-elections/
+3. Ideological Gap Widens Between More, Less Educated Adults. (2020, May 30). Retrieved September 27, 2020, from https://www.pewresearch.org/politics/2016/04/26/a-wider-ideological-gap-between-more-and-less-educated-adults/
+4. Weakliem, David. (2002). The Effects of Education on Political Opinions: An International Study. International Journal for Quality in Health Care - INT J QUAL HEALTH CARE. 14. 141-157. 10.1093/ijpor/14.2.141. 
+5. Boldyreva, Elena. (2018). Cambridge Analytica: Ethics And Online Manipulation With Decision-Making Process. 91-102. 10.15405/epsbs.2018.12.02.10. 
+6. Wickham et al., (2019). Welcome to the tidyverse. Journal of Open Source Software, 4(43), 1686, https://doi.org/10.21105/joss.01686
+7. Paul A. Hodgetts and Rohan Alexander (2020). cesR: Access the CES Datasets a Little Easier.. R package version 0.1.0.
+8. Joseph Larmarange (2020). labelled: Manipulating Labelled Data. R package version 2.6.0. https://CRAN.R-project.org/package=labelled
