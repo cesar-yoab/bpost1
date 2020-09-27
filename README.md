@@ -1,3 +1,4 @@
+<img src="http://www.ces-eec.ca/wp-content/uploads/2018/04/ces-logo-wide.png"/>
 [![Netlify Status](https://api.netlify.com/api/v1/badges/3a2597ec-c2d3-4cad-a4e6-293c0f054b46/deploy-status)](https://app.netlify.com/sites/cyvg/deploys)
 # First Blog Post
 This repository contains the code used to create the first [blog post](https://cyvg.netlify.app/posts/p1/).
