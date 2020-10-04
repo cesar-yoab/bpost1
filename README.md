@@ -21,8 +21,7 @@ install.packages(packagename)
 inside the R console.
 
 ## CES Data
-To download the data for the investigation we used the **cesR**, documentation for such package is
-available [here](https://hodgettsp.github.io/cesR/). If you would prefer to download the data from the CES website directly it can be found 
+To download the data for the investigation we used the **cesR** R package, documentation for such can be found [here](https://hodgettsp.github.io/cesR/). If you would prefer to download the data from the CES website directly it can be found 
 [here](http://ces-eec.ca/).
 
 ## Files in this repo
